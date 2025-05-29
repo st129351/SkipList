@@ -1,7 +1,8 @@
 //Lichkovaha Daniil
 //st129351@student.spbu.ru
 //SkipList
-#include 'WhatLevel.h'
+#include <cstdlib>
+#include "WhatLevel.h"
 
 int WhatLvl(int mx_lvl) {
     int lvl = 0;
