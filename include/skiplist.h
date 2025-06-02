@@ -6,10 +6,21 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
+#include <type_traits>
+#include <initializer_list>
 #include "WhatLevel.h"
 
+/**
+ * @brief skip list class (container)
+ * @tparam using T type for template
+ */
 template <typename T>
 class SkipList {
+    // template requirements (using type_traits)
+    static_assert(std::is_copy_constructible_v<T>, "'T' must support coppying");
+    static_assert(std::is_copy_assignable_v<T>, "'T' must support assignment");
+    static_assert(std::is_default_constructible_v<T>, "'T' must support default constructor");
 
 private:
     // realization nodes
@@ -28,27 +39,41 @@ private:
         }
     };
 
-    Node *head;
-    Node* tail;
-    int mx_lvl;
-    int curr_mx_lvl;
-    float prob;
+    // aliases
+    Node* head; // ptr on head node
+    Node* tail; // ptr on tail node
+    int mx_lvl; // max possible level
+    int curr_mx_lvl; // current __//__
+    size_t all_size;
 
 public:
-    // iterator realization (analogy - smart ptr)
+    /**
+     * @brief iterator realization (analogy - smart ptr)
+     * */
     class Iterator {
     private:
         Node* ptr;
     public:
+        
+        // determine
+        using iterator_category = std::forward_iterator_tag; // only increase (++), not --
+        using value_type = T;
+        using difference_type = std::ptrdiff_t; // dist between 2 ptrs, type (ptrdiff) as size_t
+        using pointer = T*;
+        using reference = T&;
+        using size_type = size_t;
+
         // if call without args p = nullptr
         Iterator(Node* p = nullptr) : ptr(p) {}
         
-        // dereference 
-        T& operator*() {
+        // dereference (for values)
+        reference operator*() {
+            if (!ptr) throw std::out_of_range("Null iterator, without dereferencing!");
             return ptr->value;
         }
         // with const
-        const T& operator*() const {
+        const reference operator*() const {
+            if (!ptr) throw std::out_of_range("Null iterator, without dereferencing!");
             return ptr->value;
         }
 
@@ -74,9 +99,70 @@ public:
         Node* GetNode() {
             return ptr;
         }
+
+        // return ptr on value (for methods)
+        pointer operator->() {
+            if (!ptr) throw std::out_of_range("Null iterator, without accessing!");
+            return &ptr->value;
+        }
     };
     
-    // SkipList()
+    using const_iterator = Iterator; // const-methods already
+ 
+    /**
+     * @brief Default constructor
+     * @param max_lvl - max level in list, default 16
+     */
+    explicit SkipList(int max_lvl = 16) : mx_lvl(max_lvl), curr_mx_lvl(0), all_size(0) {
+        head = new Node(T(), mx_lvl); // head and tail - zero values and mx_lvls to the right and left
+        tail = new Node(T(), mx_lvl);
+
+        for (int i = 0; i <= mx_lvl; i++) {
+            head->next[i] = tail;
+            tail->prev[i] = head;
+            /*
+            lvls:
+            [2]:      node
+                     /   \
+            [1]: head  -  tail
+                     \   /
+            [0]:      node
+            hard picture...            
+            */
+        }
+    }
+    /*explicit for avoid SkipList<int> lst = 1; where 1 is obgect of SkipList
+    correct SL<int> lst(1), where 1 is arg */
+
+    /**
+     * @brief constructor from init list
+     * @param init initial list
+     * @param max_lvl max level in list
+     */
+    SkipList(std::initializer_list<T> init, int max_lvl = 16) : SkipList(max_lvl) {
+        for (const auto& val : init) {
+            insert(val); // insert next
+        }
+    }
+
+    /**
+     * @brief Copying constructor
+     * @param other - other SkipList for copying
+     */
+    SkipList(const SkipList& other) : mx_lvl(other.mx_lvl), curr_mx_lvl(0), all_size(0) {
+        head = new Node(T(), mx_lvl);
+        tail = new Node(T(), mx_lvl);
+
+        for (int i = 0; i <= mx_lvl; i++) {
+            head->next[i] = tail;
+            tail->prev[i] = head;
+        }
+
+        for (const auto& val : other) {
+            insert(val);
+        }
+    }
+
 };
 
 #endif
