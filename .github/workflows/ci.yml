@@ -31,7 +31,7 @@ jobs:
       - name: Build main executable
         # Start the build with the target "main" in the Makefile
         run: |
-          make labwork2
+          make skiplist
 
       - name: Build and run tests
         # Run tests using the "tests" target in the Makefile
