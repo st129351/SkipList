@@ -72,7 +72,7 @@ public:
             return ptr->value;
         }
         // with const
-        const reference operator*() const {
+        reference operator*() const {
             if (!ptr) throw std::out_of_range("Null iterator, without dereferencing!");
             return ptr->value;
         }
@@ -189,7 +189,7 @@ public:
 
     /**
      * @brief insert an item
-     * @param val value for insert
+     * @param val the value for insert
      * @return iterator on inserted item
      */
     Iterator insert(const T& val) {
@@ -230,6 +230,168 @@ public:
         }
         all_size++;
         return Iterator(new_node);
+    }
+
+    /**
+     * @brief delete an item
+     * @param val the value for erase
+     * @return true if success, false if not found
+     */
+    bool erase(const T& val) {
+        std::vector<Node*> update(mx_lvl + 1, nullptr);
+        Node* curr = head;
+
+        // search
+        for (int i = curr_mx_lvl; i >= 0; i--) {
+            while (curr->next[i] != tail && curr->next[i]->value < val) {
+                curr = curr->next[i]; // last curr on the zero lvl
+            }
+            update[i] = curr;
+        }
+        curr = curr->next[0]; 
+
+        // if an item isn't exist
+        if (curr == tail || curr->value != val) {
+            return false;
+        }
+
+        // updating
+        for (int i = 0; i <= curr->lvl; i++) {
+            update[i]->next[i] = curr->next[i];
+            curr->next[i]->prev[i] = update[i];
+        }
+
+        // updating current max level
+        while (curr_mx_lvl > 0 && head->next[curr_mx_lvl] == tail) {
+            curr_mx_lvl--;
+        }
+
+        delete curr; // ptr on deleted item
+        all_size--;
+        return true;
+    }
+
+    /**
+     * @brief search an item
+     * @param val value for search
+     * @return the iterator on found item or end() if not found
+     */
+    Iterator find(const T& val) const {
+        Node* curr = head;
+        
+        for (int i = curr_mx_lvl; i >= 0; i--) {
+            while (curr->next[i] != tail && curr->next[i]->value < val) {
+                curr = curr->next[i];
+            }
+        }
+
+        curr = curr->next[0];
+        if (curr != tail && curr->value == val) {
+            return Iterator(curr);
+        }
+        return end(); // ptr on tail, mark of end of skiplist
+    }
+
+    /**
+     * @brief iterator on the end of the skiplist
+     * @return iterator on item after last item (after tail->prev[0], so tail)
+     */
+    Iterator end() const { // const - not change fields of class SkipList
+        return Iterator(tail); // in STl end() is next after the last with norm value
+    }
+
+    /**
+     * @brief iterator on the start of the skiplist
+     * @return iterator on 1st item (0 is head) on 0 level 
+     */
+    Iterator begin() const {
+        return Iterator(head->next[0]);
+    }
+
+    /**
+     * @brief clear the skiplist
+    */
+    void clear() {
+        Node* curr = head->next[0];
+        while (curr != tail) {
+            Node* temp = curr;
+            curr = curr->next[0];
+            delete temp;
+        }
+        for (int i = 0; i <= mx_lvl; i++) {
+            head->next[i] = tail;
+            tail->prev[i] = head;
+        }
+
+        curr_mx_lvl = 0;
+        all_size = 0;
+    } // enough delete on 0 lvl, because in skiplist all values (items) in the only one instance
+
+    /**
+     * @brief checking for emptiness
+     * @return true if skiplist is empty, else false
+     */
+    bool empty() const {
+        return all_size == 0;
+    }
+
+    /**
+     * @brief quantity of items
+     * @return quantity of items in the skiplist, without head and tail
+     */
+    size_t size() const {
+        return all_size;
+    }
+
+    /**
+     * @brief the operator for the conclusion
+     * @param os the conclusion stream
+     * @param lst thre list for conclusion
+     * @return the conclusion stream
+     */
+    friend std::ostream& operator<<(std::ostream& os, const SkipList& lst) { // binary operator (ostream + SkipList class)
+        os << "[";
+        for (auto it = lst.begin(); it != lst.end(); ++it) {
+            os << *it;
+            if (std::next(it) != lst.end()) { // next(it) to avoid changing the iterator as ++it
+                os << ", ";
+            }
+        }
+        os << "]";
+        return os;
+    }
+
+    /**
+     * @brief oterator for comparison
+     * @param other the another lst for comparison
+     * @return true if this skiplist == other skiplist, otherwise false
+     */
+    bool operator==(const SkipList& other) const {
+        if (all_size != other.all_size) {
+            return false;
+        }
+
+        auto it1 = begin();
+        auto it2 = other.begin();
+
+        while (it1 != end() && it2 != other.end()) {
+            if (*it1 != *it2) {
+                return false;
+            }
+            ++it1;
+            ++it2;
+        }
+        
+        return true;
+    }
+
+    /**
+     * @brief operator not equal
+     * @param other another skiplist
+     * @return true if not equal, else false
+     */
+    bool operator!=(const SkipList& other) const {
+        return !(*this == other);
     }
 };
 
