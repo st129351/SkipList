@@ -2,7 +2,7 @@
 //st129351@student.spbu.ru
 //SkipList
 #include <iostream>
-#include "include/SkipList.h"
+#include "SkipList.h"
 
 int main() {
     SkipList<int> lst;
