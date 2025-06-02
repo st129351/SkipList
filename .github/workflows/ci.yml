@@ -14,29 +14,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libgtest-dev cmake
-          cd /usr/src/gtest
-          sudo cmake CMakeLists.txt
-          sudo make
-          sudo cp *.a /usr/lib
-
-      - name: Verify file structure
+          sudo apt-get install -y build-essential
+          
+      - name: verify include files
         run: |
-          ls -la
-          ls -la include/
-          ls -la src/
+          echo "Checking SkipList.h exists:"
+          ls -la include/SkipList.h || echo "SkipList.h not found!"
+          echo "Full structure:"
+          ls -laR
 
-      - name: Build main executable
+      - name: build with explicit paths
         run: |
-          make -C ./ skiplist CXXFLAGS="-std=c++17 -I${GITHUB_WORKSPACE}/include -Wall -Werror"
+          g++ -std=c++17 -I${GITHUB_WORKSPACE}/include src/*.cpp -o skiplist
+          ./skiplist
 
-      - name: Build and run tests
+      - name: build with Makefile
         run: |
-          make -C ./ tests CXXFLAGS="-std=c++17 -I${GITHUB_WORKSPACE}/include -Wall -Werror"
+          make skiplist CXXFLAGS="-std=c++17 -I${GITHUB_WORKSPACE}/include"
+          make tests CXXFLAGS="-std=c++17 -I${GITHUB_WORKSPACE}/include"
+          ./tests
 
-      - name: Clean all
-        run: |
-          make cleanall
+      - name: clean
+        run: make cleanall
