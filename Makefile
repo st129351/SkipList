@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -g -Wall -pthread -I. -I$(SRC_DIR) -Werror -Wpedantic
-CXX_FLAG = -I$(SRC_DIR)
+CXXFLAGS = -std=c++17 -g -Wall -pthread -I. -Werror -Wpedantic
+CXX_FLAG = -Iinclude
 GTEST_LIBS = -lgtest -lgtest_main -lpthread
 
 SRC_DIR = src
