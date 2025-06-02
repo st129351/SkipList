@@ -2,7 +2,6 @@
 //st129351@student.spbu.ru
 //SkipList
 #include <cstdlib>
-#include "SkipList.h"
 #include "WhatLevel.h"
 
 int WhatLvl(int mx_lvl) {
