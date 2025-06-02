@@ -127,7 +127,7 @@ public:
             [1]: head  -  tail
                      \   /
             [0]:      node
-            hard picture...            
+            hard picture, i belive i am right...            
             */
         }
     }
@@ -163,6 +163,74 @@ public:
         }
     }
 
+    /**
+     * @brief assignment operator
+     * @param other - Other Skiplist for copy
+     * @return reference on current object
+     */
+    SkipList& operator=(const SkipList& other) {
+        if (this != &other) {
+            this->clear();
+            for (const auto& val : other) {
+                insert(val);
+            }
+        }
+        return *this;
+    }
+
+    /**
+     * @brief destructor 
+     */
+    ~SkipList() {
+        this->clear();
+        delete head;
+        delete tail;
+    }
+
+    /**
+     * @brief insert an item
+     * @param val value for insert
+     * @return iterator on inserted item
+     */
+    Iterator insert(const T& val) {
+        std::vector<Node*> update(mx_lvl+1, head); // vector of the places for insert
+        Node* curr = head;
+
+        // search place for insert
+        for (int i = curr_mx_lvl; i >= 0; i--) {
+            while (curr->next[i] != tail && curr->next[i]->value < val) {
+                curr = curr->next[i]; // last curr on the zero lvl
+            }
+            update[i] = curr;
+        }
+
+        // if need exclude copy:
+        
+        // curr = curr->next[0];
+        // // if item already exist in the 0 lvl
+        // if (curr != tail && curr->value == val) {
+        //     return Iterator(curr); // initiate ptr in iter
+        // }
+        int new_lvl = WhatLvl(mx_lvl);
+        if (new_lvl > curr_mx_lvl) {
+            for (int i = curr_mx_lvl + 1; i <= new_lvl; i++) {
+                update[i] = head;
+            }
+            curr_mx_lvl = new_lvl;
+        }
+        // create a new node
+        Node* new_node = new Node(val, new_lvl);
+
+        // updating connections
+        for (int i = 0; i <= new_lvl; i++) {
+            new_node->next[i] = update[i]->next[i];
+            new_node->prev[i] = update[i]; // because update[i] - place, after which the insertion is needed
+            update[i]->next[i]->prev[i] = new_node;
+            update[i]->next[i] = new_node;
+        }
+        all_size++;
+        return Iterator(new_node);
+    }
 };
 
 #endif
