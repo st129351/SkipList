@@ -1,14 +1,11 @@
 name: CI
-# Set a name for the workflow for tracking with GitHub Actions
 
 on:
-    # determine the cases, that trigger the workflow
-    push:
-        branches: 
-            - "*"
-    pull_request:
-        branches:
-            - "*"
+  push:
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
 
 jobs:
   # Section where all tasks are defined that the workflow must execute
